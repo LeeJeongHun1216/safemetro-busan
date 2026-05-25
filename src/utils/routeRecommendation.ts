@@ -10,6 +10,9 @@ import {
   type MetroGraph,
 } from '@/utils/metroGraph'
 
+/** 정거장 1개 구간 기본 이동 시간(분) */
+const MINUTES_PER_STATION = 2
+
 const USER_WEIGHTS: Record<
   UserType,
   { elevator: number; transfer: number; complexity: number; time: number }
@@ -61,8 +64,7 @@ function estimateMinutes(
   graph: MetroGraph
 ): number {
   const w = USER_WEIGHTS[userType]
-  const basePerHop = 4
-  let minutes = (path.length - 1) * basePerHop * (2 / w.time)
+  let minutes = (path.length - 1) * MINUTES_PER_STATION
 
   for (const name of path) {
     const st = getStation(stations, name)
@@ -139,7 +141,7 @@ function buildSteps(
         id: String(stepId++),
         type: 'ride',
         title: `${currLine}호선 탑승 (${direction})`,
-        durationMinutes: 6,
+        durationMinutes: MINUTES_PER_STATION,
         lineNumber: currLine,
       })
     }
