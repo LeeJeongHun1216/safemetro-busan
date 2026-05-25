@@ -82,11 +82,6 @@ export function ResultPanel() {
             )}
           </div>
         </div>
-        {!pathsAreEqual && (
-          <p className="mt-2 text-[9px] text-slate-500">
-            지도: 굵은 선=추천 · 점선=최단
-          </p>
-        )}
       </Card>
 
       <Card className="mt-3 border-primary-100 bg-primary-50/30 p-3">

@@ -67,31 +67,11 @@ export function KakaoMapView() {
       )}
 
       {(isMapReady || mapReady) && !error && (
-        <>
-          {routeComparison && (
-            <div className="pointer-events-none absolute left-3 top-3 z-10 rounded-lg bg-white/95 px-2.5 py-1.5 text-[10px] shadow-md">
-              <span className="font-semibold text-slate-800">경로</span>
-              <span className="ml-2 inline-flex items-center gap-1">
-                <span
-                  className="inline-block h-0.5 w-4 rounded"
-                  style={{ backgroundColor: '#0ea5e9' }}
-                />
-                추천
-              </span>
-              {!routeComparison.pathsAreEqual && (
-                <span className="ml-2 inline-flex items-center gap-1 text-slate-500">
-                  <span className="inline-block h-0 w-4 border-t-2 border-dashed border-slate-400" />
-                  최단
-                </span>
-              )}
-            </div>
-          )}
-          <MapControls
-            onZoomIn={zoomIn}
-            onZoomOut={zoomOut}
-            onReset={resetCenter}
-          />
-        </>
+        <MapControls
+          onZoomIn={zoomIn}
+          onZoomOut={zoomOut}
+          onReset={resetCenter}
+        />
       )}
 
       {selectedStation && (

@@ -12,8 +12,12 @@ import {
   type MetroGraph,
 } from '@/utils/metroGraph'
 
-/** 정거장 1개 구간 기본 이동 시간(분) */
-const MINUTES_PER_STATION = 2
+/** 같은 호선 인접 역 간 열차 이동(분) */
+const MINUTES_PER_HOP = 1.5
+/** 환승 1회(도보·대기) */
+const MINUTES_PER_TRANSFER = 4
+/** 출발·도착 역 진입·퇴장(각) */
+const MINUTES_STATION_ACCESS = 2
 
 const USER_WEIGHTS: Record<
   UserType,
@@ -92,19 +96,29 @@ function estimateMinutes(
   userType: UserType,
   graph: MetroGraph
 ): number {
+  if (path.length < 2) return 0
+
   const w = USER_WEIGHTS[userType]
-  let minutes = (path.length - 1) * MINUTES_PER_STATION
+  let minutes = MINUTES_STATION_ACCESS * 2
+
+  for (let i = 1; i < path.length; i++) {
+    const prevLine = graph[path[i - 1]]?.line
+    const currLine = graph[path[i]]?.line
+    if (prevLine && currLine && prevLine === currLine) {
+      minutes += MINUTES_PER_HOP
+    }
+  }
+
+  minutes += countTransfers(path, graph) * MINUTES_PER_TRANSFER
 
   for (const name of path) {
     const st = getStation(stations, name)
     if (!st) continue
-    minutes += st.elevators.length > 0 ? 1.5 * w.elevator : 2
-    if (st.status === 'broken') minutes += 3
-    if (st.status === 'partial') minutes += 1.5
+    if (st.status === 'broken') minutes += 1 * w.elevator
+    else if (st.status === 'partial') minutes += 0.5 * w.elevator
   }
 
-  minutes += countTransfers(path, graph) * (3 * w.transfer)
-  return Math.round(minutes)
+  return Math.max(Math.round(minutes), path.length - 1)
 }
 
 function buildSteps(
@@ -169,8 +183,8 @@ function buildSteps(
       steps.push({
         id: String(stepId++),
         type: 'ride',
-        title: `${currLine}호선 탑승 (${direction})`,
-        durationMinutes: MINUTES_PER_STATION,
+        title: `${currLine}호선 이동 (${direction})`,
+        durationMinutes: Math.round(MINUTES_PER_HOP) || 2,
         lineNumber: currLine,
       })
     }
