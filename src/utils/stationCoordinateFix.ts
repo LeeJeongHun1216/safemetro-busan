@@ -27,7 +27,7 @@ const LINE3_COORD_SOURCE_BY_STATION_NO: Partial<Record<number, number>> = {
 const MANUAL_STATION_COORDS: Partial<
   Record<number, { latitude: number; longitude: number }>
 > = {
-  317: { latitude: 35.2131, longitude: 128.9806 },
+  317: { latitude: 35.213317928835785, longitude: 128.96082371290117 },
 }
 
 function buildCoordByStationNo(
