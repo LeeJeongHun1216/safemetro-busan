@@ -13,6 +13,7 @@ dist-ssr
 *.local
 .env
 backend/.env
+deploy-info.json
 .venv/
 __pycache__/
 *.py[cod]
