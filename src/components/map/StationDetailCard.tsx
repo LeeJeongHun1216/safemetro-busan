@@ -12,31 +12,31 @@ export function StationDetailCard({ station, onClose }: StationDetailCardProps) 
     station.elevators.length
 
   return (
-    <div className="absolute bottom-4 left-4 right-4 z-20 mx-auto w-full max-w-sm animate-slide-up rounded-2xl border border-slate-100 bg-white p-4 shadow-panel sm:max-w-md lg:bottom-5 lg:left-5 lg:right-5 lg:max-w-lg lg:p-5">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-base font-bold text-slate-900 lg:text-lg">
+    <div className="absolute bottom-3 left-3 right-3 z-20 mx-auto w-full max-w-[280px] animate-slide-up rounded-xl border border-slate-100 bg-white p-3 shadow-panel sm:max-w-xs lg:bottom-4 lg:left-4 lg:max-w-sm">
+      <div className="flex items-start justify-between gap-1.5">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <h3 className="text-sm font-bold text-slate-900">
               {station.stationName}역
             </h3>
             <span
-              className="rounded px-1.5 py-0.5 text-[10px] font-bold text-white lg:text-xs"
+              className="rounded px-1 py-0.5 text-[9px] font-bold text-white"
               style={{ backgroundColor: LINE_COLORS[station.lineNumber] }}
             >
               {station.lineNumber}호선
             </span>
             {station.isTransferStation && (
-              <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600 lg:text-xs">
-                환승역
+              <span className="rounded bg-slate-100 px-1 py-0.5 text-[9px] font-medium text-slate-600">
+                환승
               </span>
             )}
           </div>
-          <div className="mt-1.5 flex items-center gap-1.5">
+          <div className="mt-1 flex items-center gap-1">
             <span
-              className="h-2 w-2 rounded-full lg:h-2.5 lg:w-2.5"
+              className="h-1.5 w-1.5 rounded-full"
               style={{ backgroundColor: STATUS_COLORS[station.status] }}
             />
-            <span className="text-xs font-medium text-slate-600 lg:text-sm">
+            <span className="text-[10px] font-medium text-slate-600">
               {STATUS_LABELS[station.status]}
             </span>
           </div>
@@ -44,45 +44,39 @@ export function StationDetailCard({ station, onClose }: StationDetailCardProps) 
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg p-1.5 text-lg text-slate-400 hover:bg-slate-100"
+          className="shrink-0 rounded p-1 text-sm text-slate-400 hover:bg-slate-100"
           aria-label="닫기"
         >
           ✕
         </button>
       </div>
 
-      <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[10px] lg:text-xs">
-        <div className="rounded-lg bg-red-50 py-2 text-red-600">
-          고장 <strong className="text-sm lg:text-base">{station.brokenCount}</strong>
+      <div className="mt-2 grid grid-cols-3 gap-1.5 text-center text-[9px]">
+        <div className="rounded-md bg-red-50 py-1.5 text-red-600">
+          고장 <strong className="text-xs">{station.brokenCount}</strong>
         </div>
-        <div className="rounded-lg bg-orange-50 py-2 text-orange-600">
-          부분 <strong className="text-sm lg:text-base">{station.partialCount}</strong>
+        <div className="rounded-md bg-orange-50 py-1.5 text-orange-600">
+          부분 <strong className="text-xs">{station.partialCount}</strong>
         </div>
-        <div className="rounded-lg bg-green-50 py-2 text-green-600">
-          정상 <strong className="text-sm lg:text-base">{station.normalCount}</strong>
+        <div className="rounded-md bg-green-50 py-1.5 text-green-600">
+          정상 <strong className="text-xs">{station.normalCount}</strong>
         </div>
       </div>
 
-      <p className="mt-3 text-xs text-slate-500 lg:text-sm">
-        경로 복잡도 평균:{' '}
-        <strong className="text-slate-800">{avgComplexity.toFixed(1)}</strong>
+      <p className="mt-2 text-[10px] text-slate-500">
+        복잡도 <strong className="text-slate-700">{avgComplexity.toFixed(1)}</strong>
       </p>
 
-      <ul className="mt-2 max-h-32 space-y-1.5 overflow-y-auto lg:max-h-40">
-        {station.elevators.slice(0, 5).map((elv) => (
+      <ul className="mt-1.5 max-h-24 space-y-1 overflow-y-auto">
+        {station.elevators.slice(0, 3).map((elv) => (
           <li
             key={elv.elevatorId}
-            className="rounded-lg bg-slate-50 px-2.5 py-1.5 text-[10px] lg:text-xs"
+            className="rounded-md bg-slate-50 px-2 py-1 text-[9px] leading-snug"
           >
             <span className="font-semibold text-slate-800">
               {elv.elevatorInternalNo}호기
             </span>
             <span className="text-slate-600"> · {elv.learningLabel}</span>
-            {elv.alternativeRoute && (
-              <p className="mt-0.5 text-[10px] text-primary-600 lg:text-xs">
-                대체: {elv.alternativeRoute}
-              </p>
-            )}
           </li>
         ))}
       </ul>
