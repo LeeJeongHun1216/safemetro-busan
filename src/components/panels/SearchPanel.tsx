@@ -1,5 +1,6 @@
 import { useAppStore } from '@/store/useAppStore'
 import { Card } from '@/components/ui/Card'
+import { StationNamePicker } from '@/components/panels/StationNamePicker'
 import type { UserType } from '@/types/elevator'
 
 const USER_TYPES: { id: UserType; label: string; icon: string }[] = [
@@ -8,57 +9,6 @@ const USER_TYPES: { id: UserType; label: string; icon: string }[] = [
   { id: 'elderly', label: '노약자\n사용자', icon: '🧓' },
   { id: 'general', label: '일반\n사용자', icon: '🚶' },
 ]
-
-function StationInput({
-  label,
-  value,
-  onChange,
-  isFavorite,
-  onToggleFavorite,
-}: {
-  label: string
-  value: string
-  onChange: (v: string) => void
-  isFavorite?: boolean
-  onToggleFavorite?: () => void
-}) {
-  return (
-    <div>
-      <label className="mb-1.5 block text-xs font-medium text-slate-600">
-        {label}
-      </label>
-      <div className="relative flex gap-1.5">
-        <div className="relative min-w-0 flex-1">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-            🔍
-          </span>
-          <input
-            type="text"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder="역명을 입력하세요"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-sm outline-none transition focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100"
-          />
-        </div>
-        {onToggleFavorite && (
-          <button
-            type="button"
-            onClick={onToggleFavorite}
-            title={isFavorite ? '즐겨찾기 해제' : '즐겨찾기 추가'}
-            className={`flex h-[42px] w-10 shrink-0 items-center justify-center rounded-xl border text-base transition ${
-              isFavorite
-                ? 'border-amber-300 bg-amber-50 text-amber-500'
-                : 'border-slate-200 bg-white text-slate-400 hover:border-amber-200 hover:text-amber-500'
-            }`}
-            aria-label={isFavorite ? '즐겨찾기 해제' : '즐겨찾기 추가'}
-          >
-            {isFavorite ? '★' : '☆'}
-          </button>
-        )}
-      </div>
-    </div>
-  )
-}
 
 function FavoritesPanel() {
   const {
@@ -150,6 +100,7 @@ export function SearchPanel() {
     departureStation,
     arrivalStation,
     userType,
+    stationNames,
     statusCounts,
     dataSource,
     isLoading,
@@ -190,10 +141,11 @@ export function SearchPanel() {
         </p>
 
         <div className="mt-4 space-y-3">
-          <StationInput
+          <StationNamePicker
             label="출발역"
             value={departureStation}
             onChange={setDepartureStation}
+            stationNames={stationNames}
             isFavorite={isFavoriteStation(departureStation.trim())}
             onToggleFavorite={toggleDepartureFavorite}
           />
@@ -211,10 +163,11 @@ export function SearchPanel() {
             </button>
           </div>
 
-          <StationInput
+          <StationNamePicker
             label="도착역"
             value={arrivalStation}
             onChange={setArrivalStation}
+            stationNames={stationNames}
             isFavorite={isFavoriteStation(arrivalStation.trim())}
             onToggleFavorite={toggleArrivalFavorite}
           />

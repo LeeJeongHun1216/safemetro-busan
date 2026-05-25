@@ -3,8 +3,7 @@ import { Card } from '@/components/ui/Card'
 import { LINE_COLORS } from '@/utils/statusColors'
 
 export function ResultPanel() {
-  const { recommendation, isRecommending, departureStation, arrivalStation } =
-    useAppStore()
+  const { recommendation, isRecommending } = useAppStore()
 
   if (isRecommending) {
     return (
@@ -29,9 +28,6 @@ export function ResultPanel() {
           </p>
           <p className="mt-1 text-xs text-slate-500">
             AI 경로 추천하기 버튼을 눌러주세요
-          </p>
-          <p className="mt-4 text-xs text-slate-400">
-            예시: {departureStation} → {arrivalStation}
           </p>
         </div>
       </aside>

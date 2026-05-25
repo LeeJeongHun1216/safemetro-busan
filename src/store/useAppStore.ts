@@ -77,8 +77,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   stationSearch: '',
   statusFilter: 'all',
   selectedLine: 'all',
-  departureStation: '서면',
-  arrivalStation: '연산',
+  departureStation: '',
+  arrivalStation: '',
   userType: 'wheelchair',
   selectedStation: null,
   recommendation: null,
@@ -157,7 +157,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         isLoading: false,
       })
 
-      await get().requestRecommendation()
     } catch (error) {
       const message =
         error instanceof Error ? error.message : '데이터 로드에 실패했습니다.'
@@ -168,6 +167,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   requestRecommendation: async () => {
     const { departureStation, arrivalStation, userType, stations } = get()
     if (stations.length === 0) return
+    if (!departureStation.trim() || !arrivalStation.trim()) return
 
     set({ isRecommending: true, recommendation: null })
 
