@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 import { useKakaoMap } from '@/hooks/useKakaoMap'
 import { MapLegend } from '@/components/map/MapLegend'
@@ -12,12 +13,14 @@ export function KakaoMapView() {
   const mapReady = useAppStore((s) => s.mapReady)
   const isLoading = useAppStore((s) => s.isLoading)
 
+  const handleMapReady = useCallback(() => setMapReady(true), [setMapReady])
+
   const { containerRef, error, isMapReady, zoomIn, zoomOut, resetCenter } =
     useKakaoMap({
       stations,
       selectedStation,
       onStationClick: setSelectedStation,
-      onReady: () => setMapReady(true),
+      onReady: handleMapReady,
     })
 
   return (

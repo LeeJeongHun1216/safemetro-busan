@@ -25,8 +25,13 @@ export function useKakaoMap({
   const mapRef = useRef<kakao.maps.Map | null>(null)
   const overlaysRef = useRef<kakao.maps.CustomOverlay[]>([])
   const hasFittedBoundsRef = useRef(false)
+  const onStationClickRef = useRef(onStationClick)
+  const onReadyRef = useRef(onReady)
   const [error, setError] = useState<string | null>(null)
   const [isMapReady, setIsMapReady] = useState(false)
+
+  onStationClickRef.current = onStationClick
+  onReadyRef.current = onReady
 
   const clearMarkers = useCallback(() => {
     overlaysRef.current.forEach((o) => o.setMap(null))
@@ -58,7 +63,9 @@ export function useKakaoMap({
 
       const htmlOverlay = new kakao.maps.CustomOverlay({
         position,
-        content: createStationMarkerElement(station, () => onStationClick(station)),
+        content: createStationMarkerElement(station, () =>
+          onStationClickRef.current(station)
+        ),
         map,
         xAnchor: 0.5,
         yAnchor: 0.5,
@@ -76,7 +83,7 @@ export function useKakaoMap({
         hasFittedBoundsRef.current = true
       }
     }
-  }, [stations, onStationClick, clearMarkers])
+  }, [stations, clearMarkers])
 
   useEffect(() => {
     let cancelled = false
@@ -92,7 +99,7 @@ export function useKakaoMap({
         })
         mapRef.current = map
         setIsMapReady(true)
-        onReady?.()
+        onReadyRef.current?.()
       })
       .catch((err: Error) => {
         if (!cancelled) setError(err.message)
@@ -102,25 +109,24 @@ export function useKakaoMap({
       cancelled = true
       clearMarkers()
       mapRef.current = null
+      setIsMapReady(false)
     }
-  }, [onReady, clearMarkers])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- map init once per mount
+  }, [clearMarkers])
 
   useEffect(() => {
     if (isMapReady && stations.length > 0) renderMarkers()
-  }, [isMapReady, stations.length, renderMarkers])
+  }, [isMapReady, stations, renderMarkers])
 
   useEffect(() => {
     if (!isMapReady || !containerRef.current) return
 
     const observer = new ResizeObserver(() => {
-      const map = mapRef.current
-      if (!map) return
-      map.relayout()
-      if (stations.length > 0) renderMarkers()
+      mapRef.current?.relayout()
     })
     observer.observe(containerRef.current)
     return () => observer.disconnect()
-  }, [isMapReady, stations.length, renderMarkers])
+  }, [isMapReady])
 
   useEffect(() => {
     if (!isMapReady || !mapRef.current || !selectedStation) return
@@ -132,6 +138,7 @@ export function useKakaoMap({
     const pos = new kakao.maps.LatLng(coords.latitude, coords.longitude)
     mapRef.current.setCenter(pos)
     mapRef.current.setLevel(4)
+    mapRef.current.relayout()
   }, [selectedStation, isMapReady])
 
   const zoomIn = () => {

@@ -14,48 +14,139 @@ function StationInput({
   value,
   onChange,
   stationNames,
-  showShortcuts,
+  isFavorite,
+  onToggleFavorite,
 }: {
   label: string
   value: string
   onChange: (v: string) => void
   stationNames: string[]
-  showShortcuts?: boolean
+  isFavorite?: boolean
+  onToggleFavorite?: () => void
 }) {
   return (
     <div>
       <label className="mb-1.5 block text-xs font-medium text-slate-600">
         {label}
       </label>
-      <div className="relative">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-          🔍
-        </span>
-        <input
-          type="text"
-          list={`stations-${label}`}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="역명을 입력하세요"
-          className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-sm outline-none transition focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100"
-        />
-        <datalist id={`stations-${label}`}>
-          {stationNames.map((name) => (
-            <option key={name} value={name} />
-          ))}
-        </datalist>
+      <div className="relative flex gap-1.5">
+        <div className="relative min-w-0 flex-1">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+            🔍
+          </span>
+          <input
+            type="text"
+            list={`stations-${label}`}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="역명을 입력하세요"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-sm outline-none transition focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100"
+          />
+          <datalist id={`stations-${label}`}>
+            {stationNames.map((name) => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
+        </div>
+        {onToggleFavorite && (
+          <button
+            type="button"
+            onClick={onToggleFavorite}
+            title={isFavorite ? '즐겨찾기 해제' : '즐겨찾기 추가'}
+            className={`flex h-[42px] w-10 shrink-0 items-center justify-center rounded-xl border text-base transition ${
+              isFavorite
+                ? 'border-amber-300 bg-amber-50 text-amber-500'
+                : 'border-slate-200 bg-white text-slate-400 hover:border-amber-200 hover:text-amber-500'
+            }`}
+            aria-label={isFavorite ? '즐겨찾기 해제' : '즐겨찾기 추가'}
+          >
+            {isFavorite ? '★' : '☆'}
+          </button>
+        )}
       </div>
-      {showShortcuts && (
-        <div className="mt-2 flex gap-1.5">
-          {['내 위치', '최근 역', '즐겨찾기'].map((tag) => (
-            <button
-              key={tag}
-              type="button"
-              className="rounded-lg border border-slate-200 px-2 py-1 text-[10px] text-slate-500 hover:bg-slate-50"
-            >
-              {tag}
-            </button>
-          ))}
+    </div>
+  )
+}
+
+function FavoritesPanel() {
+  const {
+    favoriteStations,
+    favoritesOpen,
+    toggleFavoritesOpen,
+    setDepartureStation,
+    setArrivalStation,
+    removeFavoriteStation,
+    departureStation,
+    addFavoriteStation,
+    isFavoriteStation,
+  } = useAppStore()
+
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={toggleFavoritesOpen}
+        className={`rounded-lg border px-2.5 py-1 text-[10px] font-medium transition ${
+          favoritesOpen
+            ? 'border-amber-300 bg-amber-50 text-amber-700'
+            : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+        }`}
+      >
+        ★ 즐겨찾기{favoriteStations.length > 0 ? ` (${favoriteStations.length})` : ''}
+      </button>
+
+      {favoritesOpen && (
+        <div className="mt-2 rounded-xl border border-slate-200 bg-white p-2.5">
+          {favoriteStations.length === 0 ? (
+            <p className="text-center text-[10px] text-slate-500">
+              저장된 역이 없습니다. 출발역 옆 ☆를 눌러 추가하세요.
+            </p>
+          ) : (
+            <ul className="space-y-1.5">
+              {favoriteStations.map((name) => (
+                <li
+                  key={name}
+                  className="flex items-center gap-1 rounded-lg bg-slate-50 px-2 py-1.5"
+                >
+                  <span className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-800">
+                    {name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setDepartureStation(name)}
+                    className="rounded-md bg-primary-50 px-1.5 py-0.5 text-[9px] font-semibold text-primary-700 hover:bg-primary-100"
+                  >
+                    출발
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setArrivalStation(name)}
+                    className="rounded-md bg-slate-200 px-1.5 py-0.5 text-[9px] font-semibold text-slate-700 hover:bg-slate-300"
+                  >
+                    도착
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeFavoriteStation(name)}
+                    className="px-1 text-[10px] text-slate-400 hover:text-red-500"
+                    aria-label={`${name} 즐겨찾기 삭제`}
+                  >
+                    ✕
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {departureStation.trim() &&
+            !isFavoriteStation(departureStation) && (
+              <button
+                type="button"
+                onClick={() => addFavoriteStation(departureStation)}
+                className="mt-2 w-full rounded-lg border border-dashed border-amber-200 py-1.5 text-[10px] font-medium text-amber-700 hover:bg-amber-50"
+              >
+                「{departureStation}」 즐겨찾기에 추가
+              </button>
+            )}
         </div>
       )}
     </div>
@@ -77,10 +168,27 @@ export function SearchPanel() {
     setUserType,
     swapStations,
     requestRecommendation,
+    addFavoriteStation,
+    removeFavoriteStation,
+    isFavoriteStation,
   } = useAppStore()
 
   const now = new Date()
   const timestamp = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} 기준`
+
+  const toggleDepartureFavorite = () => {
+    const name = departureStation.trim()
+    if (!name) return
+    if (isFavoriteStation(name)) removeFavoriteStation(name)
+    else addFavoriteStation(name)
+  }
+
+  const toggleArrivalFavorite = () => {
+    const name = arrivalStation.trim()
+    if (!name) return
+    if (isFavoriteStation(name)) removeFavoriteStation(name)
+    else addFavoriteStation(name)
+  }
 
   return (
     <aside className="flex w-full shrink-0 flex-col gap-3 overflow-y-auto border-r border-slate-100 bg-slate-50/50 p-3 lg:w-[300px] xl:w-[320px]">
@@ -96,8 +204,11 @@ export function SearchPanel() {
             value={departureStation}
             onChange={setDepartureStation}
             stationNames={stationNames}
-            showShortcuts
+            isFavorite={isFavoriteStation(departureStation.trim())}
+            onToggleFavorite={toggleDepartureFavorite}
           />
+
+          <FavoritesPanel />
 
           <div className="flex justify-center">
             <button
@@ -115,6 +226,8 @@ export function SearchPanel() {
             value={arrivalStation}
             onChange={setArrivalStation}
             stationNames={stationNames}
+            isFavorite={isFavoriteStation(arrivalStation.trim())}
+            onToggleFavorite={toggleArrivalFavorite}
           />
         </div>
 
@@ -177,33 +290,27 @@ export function SearchPanel() {
             </div>
           ) : (
             <>
-          <div className="rounded-xl bg-red-50 px-2 py-3 text-center">
-            <p className="text-[10px] text-red-600">고장</p>
-            <p className="mt-1 text-xl font-bold text-red-600">
-              {statusCounts.broken}
-            </p>
-          </div>
-          <div className="rounded-xl bg-orange-50 px-2 py-3 text-center">
-            <p className="text-[10px] text-orange-600">일부 장애</p>
-            <p className="mt-1 text-xl font-bold text-orange-600">
-              {statusCounts.partial}
-            </p>
-          </div>
-          <div className="rounded-xl bg-green-50 px-2 py-3 text-center">
-            <p className="text-[10px] text-green-600">정상</p>
-            <p className="mt-1 text-xl font-bold text-green-600">
-              {statusCounts.normal}
-            </p>
-          </div>
+              <div className="rounded-xl bg-red-50 px-2 py-3 text-center">
+                <p className="text-[10px] text-red-600">고장</p>
+                <p className="mt-1 text-xl font-bold text-red-600">
+                  {statusCounts.broken}
+                </p>
+              </div>
+              <div className="rounded-xl bg-orange-50 px-2 py-3 text-center">
+                <p className="text-[10px] text-orange-600">일부 장애</p>
+                <p className="mt-1 text-xl font-bold text-orange-600">
+                  {statusCounts.partial}
+                </p>
+              </div>
+              <div className="rounded-xl bg-green-50 px-2 py-3 text-center">
+                <p className="text-[10px] text-green-600">정상</p>
+                <p className="mt-1 text-xl font-bold text-green-600">
+                  {statusCounts.normal}
+                </p>
+              </div>
             </>
           )}
         </div>
-        <button
-          type="button"
-          className="mt-3 w-full text-center text-xs font-medium text-primary-600 hover:underline"
-        >
-          전체 장애 현황 보기 &gt;
-        </button>
       </Card>
     </aside>
   )

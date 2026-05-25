@@ -1,5 +1,9 @@
 import { create } from 'zustand'
 import { loadElevatorDataset } from '@/data/loadElevatorData'
+import {
+  loadFavoriteStations,
+  saveFavoriteStations,
+} from '@/utils/favorites'
 import type { StatusCounts } from '@/data/loadElevatorData'
 import { recommendRoute, getStationNames } from '@/utils/routeRecommendation'
 import type {
@@ -32,6 +36,8 @@ interface AppState {
   isRecommending: boolean
   mapReady: boolean
   mobilePanel: 'search' | 'map' | 'result'
+  favoriteStations: string[]
+  favoritesOpen: boolean
 
   setActiveNav: (tab: NavTab) => void
   setStationSearch: (q: string) => void
@@ -47,6 +53,10 @@ interface AppState {
   requestRecommendation: () => Promise<void>
   loadData: () => Promise<void>
   focusStation: (name: string) => void
+  toggleFavoritesOpen: () => void
+  addFavoriteStation: (name: string) => void
+  removeFavoriteStation: (name: string) => void
+  isFavoriteStation: (name: string) => boolean
 }
 
 const emptyCounts: StatusCounts = {
@@ -76,6 +86,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   isRecommending: false,
   mapReady: false,
   mobilePanel: 'map',
+  favoriteStations: loadFavoriteStations(),
+  favoritesOpen: false,
 
   setActiveNav: (tab) => set({ activeNav: tab }),
   setStationSearch: (q) => set({ stationSearch: q }),
@@ -106,6 +118,28 @@ export const useAppStore = create<AppState>((set, get) => ({
       })
     }
   },
+
+  toggleFavoritesOpen: () =>
+    set((s) => ({ favoritesOpen: !s.favoritesOpen })),
+
+  addFavoriteStation: (name) => {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    const { favoriteStations, stationNames } = get()
+    if (!stationNames.includes(trimmed)) return
+    if (favoriteStations.includes(trimmed)) return
+    const next = [...favoriteStations, trimmed]
+    saveFavoriteStations(next)
+    set({ favoriteStations: next, favoritesOpen: true })
+  },
+
+  removeFavoriteStation: (name) => {
+    const next = get().favoriteStations.filter((n) => n !== name)
+    saveFavoriteStations(next)
+    set({ favoriteStations: next })
+  },
+
+  isFavoriteStation: (name) => get().favoriteStations.includes(name),
 
   loadData: async () => {
     set({ isLoading: true, dataError: null })
