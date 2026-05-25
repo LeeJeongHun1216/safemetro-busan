@@ -215,7 +215,12 @@ export function SearchPanel() {
 
       <Card className="p-4">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-sm font-bold text-slate-900">실시간 장애 요약</h3>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">실시간 장애 요약</h3>
+            <p className="text-[10px] text-slate-400">
+              중복 안내 통합 · 총 {statusCounts.total}건
+            </p>
+          </div>
           <div className="flex flex-col items-end gap-0.5">
             {(dataSource === 'api' || dataSource === 'backend') && (
               <span className="rounded-md bg-primary-50 px-1.5 py-0.5 text-[9px] font-semibold text-primary-600">

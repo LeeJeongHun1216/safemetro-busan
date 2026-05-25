@@ -1,17 +1,17 @@
 import { fetchElevatorsFromBackend, isBackendApiConfigured } from '@/api/backendApi'
 import { fetchAllElevatorRawRecords, isOdcloudApiConfigured } from '@/api/elevatorApi'
 import { rawElevatorApiResponse } from '@/mock/rawElevatorData'
-import {
-  transformElevatorRecord,
-  groupByStation,
-} from '@/transform/transformElevatorData'
-import { applyStationCoordinateFixes } from '@/utils/stationCoordinateFix'
+import { groupByStation } from '@/transform/transformElevatorData'
+import { prepareElevatorRecords } from '@/data/prepareElevatorRecords'
+import { computeStatusCounts } from '@/utils/elevatorDisplay'
 import type {
   ElevatorRecord,
   StationSummary,
   DataSource,
-  RawElevatorRecord,
+  StatusCounts,
 } from '@/types/elevator'
+
+export type { StatusCounts }
 
 export interface ElevatorDataset {
   records: ElevatorRecord[]
@@ -20,42 +20,14 @@ export interface ElevatorDataset {
   source: DataSource
 }
 
-export interface StatusCounts {
-  broken: number
-  partial: number
-  normal: number
-  total: number
-}
-
-function computeStatusCounts(records: ElevatorRecord[]): StatusCounts {
-  let broken = 0
-  let partial = 0
-  let normal = 0
-
-  for (const record of records) {
-    if (record.status === 'broken') broken++
-    else if (record.status === 'partial') partial++
-    else normal++
-  }
-
-  return { broken, partial, normal, total: records.length }
-}
-
-function recordsFromRaw(rawList: RawElevatorRecord[]) {
-  const records = rawList.map(transformElevatorRecord)
-  applyStationCoordinateFixes(records)
-  return records
-}
-
 export async function loadElevatorDataset(): Promise<ElevatorDataset> {
   if (isBackendApiConfigured()) {
     try {
       const response = await fetchElevatorsFromBackend()
-      const records = recordsFromRaw(response.data)
-      const stations = groupByStation(records)
+      const records = prepareElevatorRecords(response.data)
       return {
         records,
-        stations,
+        stations: groupByStation(records),
         statusCounts: computeStatusCounts(records),
         source: 'backend',
       }
@@ -67,11 +39,10 @@ export async function loadElevatorDataset(): Promise<ElevatorDataset> {
   if (isOdcloudApiConfigured()) {
     try {
       const rawList = await fetchAllElevatorRawRecords()
-      const records = recordsFromRaw(rawList)
-      const stations = groupByStation(records)
+      const records = prepareElevatorRecords(rawList)
       return {
         records,
-        stations,
+        stations: groupByStation(records),
         statusCounts: computeStatusCounts(records),
         source: 'api',
       }
@@ -80,11 +51,10 @@ export async function loadElevatorDataset(): Promise<ElevatorDataset> {
     }
   }
 
-  const records = recordsFromRaw(rawElevatorApiResponse.data)
-  const stations = groupByStation(records)
+  const records = prepareElevatorRecords(rawElevatorApiResponse.data)
   return {
     records,
-    stations,
+    stations: groupByStation(records),
     statusCounts: computeStatusCounts(records),
     source: 'mock',
   }

@@ -18,22 +18,12 @@ export function StatusView() {
   const setStationSearch = useAppStore((s) => s.setStationSearch)
   const focusStation = useAppStore((s) => s.focusStation)
 
+  const statusCounts = useAppStore((s) => s.statusCounts)
+
   const distinctRecords = useMemo(
     () => getDistinctStatusRecords(records),
     [records]
   )
-
-  const statusCounts = useMemo(() => {
-    let broken = 0
-    let partial = 0
-    let normal = 0
-    for (const r of distinctRecords) {
-      if (r.status === 'broken') broken++
-      else if (r.status === 'partial') partial++
-      else normal++
-    }
-    return { broken, partial, normal, total: distinctRecords.length }
-  }, [distinctRecords])
 
   const filtered = useMemo(() => {
     const q = stationSearch.replace(/역$/, '').trim().toLowerCase()

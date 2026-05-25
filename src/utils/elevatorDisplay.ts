@@ -1,4 +1,4 @@
-import type { ElevatorRecord } from '@/types/elevator'
+import type { ElevatorRecord, StatusCounts } from '@/types/elevator'
 
 export function normalizeDisplayText(value: string): string {
   return value.replace(/\s+/g, ' ').trim()
@@ -124,6 +124,22 @@ export function getDistinctStatusRecords(
   }
 
   return result
+}
+
+/** 장애 현황·검색 패널·상태바와 동일한 중복 제거 기준 집계 */
+export function computeStatusCounts(records: ElevatorRecord[]): StatusCounts {
+  const distinct = getDistinctStatusRecords(records)
+  let broken = 0
+  let partial = 0
+  let normal = 0
+
+  for (const r of distinct) {
+    if (r.status === 'broken') broken++
+    else if (r.status === 'partial') partial++
+    else normal++
+  }
+
+  return { broken, partial, normal, total: distinct.length }
 }
 
 /** 역별 카드에 보여줄 서로 다른 대체 경로 문구 */

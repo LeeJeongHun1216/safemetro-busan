@@ -4,7 +4,7 @@ import {
   loadFavoriteStations,
   saveFavoriteStations,
 } from '@/utils/favorites'
-import type { StatusCounts } from '@/data/loadElevatorData'
+import type { StatusCounts } from '@/types/elevator'
 import {
   recommendRouteComparison,
   getStationNames,

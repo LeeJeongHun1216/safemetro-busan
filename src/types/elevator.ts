@@ -49,6 +49,14 @@ export type StatusFilter = 'all' | 'normal' | 'partial' | 'broken'
 
 export type ElevatorStatus = 'normal' | 'partial' | 'broken'
 
+/** 장애 요약·패널용 (중복 안내 제거 후 집계) */
+export interface StatusCounts {
+  broken: number
+  partial: number
+  normal: number
+  total: number
+}
+
 export type AlternativeRouteType =
   | 'ALT_ELV'
   | 'ALT_STAIRS'

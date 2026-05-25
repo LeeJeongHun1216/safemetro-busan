@@ -409,19 +409,6 @@ export function recommendRouteComparison(
   }
 }
 
-/** @deprecated recommendRouteComparison 사용 권장 */
-export function recommendRoute(
-  departure: string,
-  arrival: string,
-  userType: UserType,
-  stations: StationSummary[]
-): RouteRecommendation | null {
-  return (
-    recommendRouteComparison(departure, arrival, userType, stations)
-      ?.recommended ?? null
-  )
-}
-
 export function getStationNames(stations: StationSummary[]): string[] {
   const names = new Set(stations.map((s) => s.stationName))
   return Array.from(names).sort((a, b) => a.localeCompare(b, 'ko'))

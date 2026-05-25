@@ -1,6 +1,5 @@
 import type {
   RawElevatorRecord,
-  RawElevatorApiResponse,
   ElevatorRecord,
   StationSummary,
   ElevatorStatus,
@@ -64,16 +63,7 @@ function parseAlternativeRouteType(type: string): AlternativeRouteType {
     : 'NORMAL'
 }
 
-/**
- * 공공데이터 필드 기반 상태 추론 (API에 "일부 장애" 컬럼 없음)
- *
- * - broken: 경로 불가 또는 고장·이용불가가 명확한 경우
- * - partial: "부분 장애", 점검, 일부 등 실제 제한이 드러난 경우만
- * - normal: "정상 운행", "대체 엘리베이터 이용"(안내) 등
- *
- * ※ '대체' 단어만으로는 partial 처리하지 않음 (과다 분류 방지)
- * ※ ALT_ELV는 부산 데이터 대부분이 NORMAL/ALT_ELV라 partial 기준에서 제외
- */
+/** API에 상태 컬럼 없음 — 학습라벨·대체경로·이용 가능 여부로 추론 */
 export function deriveElevatorStatus(
   record: RawElevatorRecord
 ): ElevatorStatus {
@@ -141,12 +131,6 @@ export function transformElevatorRecord(
     isTransferStation: parseYn(raw['환승역 여부']),
     status,
   }
-}
-
-export function transformElevatorApiResponse(
-  response: RawElevatorApiResponse
-): ElevatorRecord[] {
-  return response.data.map(transformElevatorRecord)
 }
 
 function worstStatus(statuses: ElevatorStatus[]): ElevatorStatus {
