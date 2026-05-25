@@ -1,0 +1,22 @@
+# Render Blueprint — GitHub 연동 후 "New Blueprint" 또는 Web Service 수동 생성
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: safemetro-busan-api
+    runtime: python
+    region: singapore
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: ODCLOUD_SERVICE_KEY
+        sync: false
+      - key: ODCLOUD_API_BASE
+        value: https://api.odcloud.kr/api
+      - key: CORS_ORIGINS
+        value: http://localhost:5173
+        # Vercel 배포 후 Render 대시보드에서 실제 URL로 수정:
+        # https://your-app.vercel.app
