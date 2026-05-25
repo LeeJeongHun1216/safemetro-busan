@@ -142,18 +142,18 @@ export function groupByStation(records: ElevatorRecord[]): StationSummary[] {
   const map = new Map<string, ElevatorRecord[]>()
 
   for (const record of records) {
-    const key = record.stationName
+    const key = `${record.stationName}::${record.lineNumber}`
     const list = map.get(key) ?? []
     list.push(record)
     map.set(key, list)
   }
 
-  return Array.from(map.entries()).map(([stationName, elevators]) => {
+  return Array.from(map.entries()).map(([, elevators]) => {
     const first = elevators[0]
     const statuses = elevators.map((e) => e.status)
 
     return {
-      stationName,
+      stationName: first.stationName,
       stationNo: first.stationNo,
       lineNumber: first.lineNumber,
       latitude: first.latitude,

@@ -2,8 +2,6 @@ import { getLineColor } from '@/utils/statusColors'
 import type { StationSummary } from '@/types/elevator'
 
 const LINE_MARKER_SIZE = 28
-const TRANSFER_MARKER_SIZE = 36
-const SAM_TAEGEUK_SRC = `${import.meta.env.BASE_URL}samtaeguk-transfer.png`
 
 export function isValidBusanCoord(lat: number, lng: number): boolean {
   return (
@@ -61,35 +59,17 @@ export function createStationMarkerElement(
   root.style.cssText =
     'display:flex;flex-direction:column;align-items:center;cursor:pointer;user-select:none;'
 
-  if (station.isTransferStation) {
-    const img = document.createElement('img')
-    img.src = SAM_TAEGEUK_SRC
-    img.alt = `${station.stationName} 환승역`
-    img.width = TRANSFER_MARKER_SIZE
-    img.height = TRANSFER_MARKER_SIZE
-    img.draggable = false
-    img.style.cssText = [
-      `width:${TRANSFER_MARKER_SIZE}px`,
-      `height:${TRANSFER_MARKER_SIZE}px`,
-      'object-fit:contain',
-      'flex-shrink:0',
-      'pointer-events:none',
-      'filter:drop-shadow(0 2px 6px rgba(15,23,42,0.35))',
-    ].join(';')
-    root.appendChild(img)
-  } else {
-    const color = getLineColor(station.lineNumber)
-    const dot = document.createElement('div')
-    dot.style.cssText = [
-      `width:${LINE_MARKER_SIZE}px`,
-      `height:${LINE_MARKER_SIZE}px`,
-      `background:${color}`,
-      'border:3px solid #fff',
-      'border-radius:50%',
-      'box-shadow:0 2px 8px rgba(15,23,42,0.35)',
-    ].join(';')
-    root.appendChild(dot)
-  }
+  const color = getLineColor(station.lineNumber)
+  const dot = document.createElement('div')
+  dot.style.cssText = [
+    `width:${LINE_MARKER_SIZE}px`,
+    `height:${LINE_MARKER_SIZE}px`,
+    `background:${color}`,
+    'border:3px solid #fff',
+    'border-radius:50%',
+    'box-shadow:0 2px 8px rgba(15,23,42,0.35)',
+  ].join(';')
+  root.appendChild(dot)
 
   appendStationLabel(root, station.stationName)
 

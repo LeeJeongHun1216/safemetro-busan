@@ -46,8 +46,9 @@ export function useKakaoMap({
 
     const uniqueStations = new Map<string, StationSummary>()
     for (const s of stations) {
-      if (!uniqueStations.has(s.stationName)) {
-        uniqueStations.set(s.stationName, s)
+      const key = `${s.stationName}::${s.lineNumber}`
+      if (!uniqueStations.has(key)) {
+        uniqueStations.set(key, s)
       }
     }
 
