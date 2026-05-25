@@ -63,3 +63,36 @@ export function getDistinctElevatorEntries(
 
   return result
 }
+
+/** 장애 현황 테이블 중복 행 판별 */
+export function statusRecordDedupeKey(r: ElevatorRecord): string {
+  return [
+    r.stationName,
+    r.lineNumber,
+    r.elevatorInternalNo,
+    r.status,
+    r.isRouteAvailable,
+    formatMovementPath(r),
+    r.moveDirection.trim(),
+    r.alternativeRoute.trim(),
+    r.learningLabel.trim(),
+    r.complexityGrade,
+    r.complexityScore,
+  ].join('|')
+}
+
+export function getDistinctStatusRecords(
+  records: ElevatorRecord[]
+): ElevatorRecord[] {
+  const seen = new Set<string>()
+  const result: ElevatorRecord[] = []
+
+  for (const r of records) {
+    const key = statusRecordDedupeKey(r)
+    if (seen.has(key)) continue
+    seen.add(key)
+    result.push(r)
+  }
+
+  return result
+}

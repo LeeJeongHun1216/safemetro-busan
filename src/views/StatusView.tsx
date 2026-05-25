@@ -1,11 +1,14 @@
 import { useMemo } from 'react'
 import { useAppStore } from '@/store/useAppStore'
+import {
+  getDistinctStatusRecords,
+  statusRecordDedupeKey,
+} from '@/utils/elevatorDisplay'
 import { STATUS_COLORS, STATUS_LABELS } from '@/utils/statusColors'
 import type { ElevatorStatus } from '@/types/elevator'
 
 export function StatusView() {
   const records = useAppStore((s) => s.records)
-  const statusCounts = useAppStore((s) => s.statusCounts)
   const statusFilter = useAppStore((s) => s.statusFilter)
   const stationSearch = useAppStore((s) => s.stationSearch)
   const isLoading = useAppStore((s) => s.isLoading)
@@ -14,16 +17,36 @@ export function StatusView() {
   const setStationSearch = useAppStore((s) => s.setStationSearch)
   const focusStation = useAppStore((s) => s.focusStation)
 
+  const distinctRecords = useMemo(
+    () => getDistinctStatusRecords(records),
+    [records]
+  )
+
+  const statusCounts = useMemo(() => {
+    let broken = 0
+    let partial = 0
+    let normal = 0
+    for (const r of distinctRecords) {
+      if (r.status === 'broken') broken++
+      else if (r.status === 'partial') partial++
+      else normal++
+    }
+    return { broken, partial, normal, total: distinctRecords.length }
+  }, [distinctRecords])
+
   const filtered = useMemo(() => {
-    return records
+    const q = stationSearch.replace(/역$/, '').trim().toLowerCase()
+
+    return distinctRecords
       .filter((r) => {
         if (statusFilter !== 'all' && r.status !== statusFilter) return false
-        if (
-          stationSearch &&
-          !r.stationName.includes(stationSearch.replace(/역$/, ''))
+        if (!q) return true
+        return (
+          r.stationName.toLowerCase().includes(q) ||
+          r.learningLabel.toLowerCase().includes(q) ||
+          r.alternativeRoute.toLowerCase().includes(q) ||
+          String(r.elevatorInternalNo).includes(q)
         )
-          return false
-        return true
       })
       .sort((a, b) => {
         const order: Record<ElevatorStatus, number> = {
@@ -33,7 +56,7 @@ export function StatusView() {
         }
         return order[a.status] - order[b.status]
       })
-  }, [records, statusFilter, stationSearch])
+  }, [distinctRecords, statusFilter, stationSearch])
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50/50">
@@ -42,7 +65,7 @@ export function StatusView() {
           <div>
             <h2 className="text-lg font-bold text-slate-900">장애 현황</h2>
             <p className="mt-1 text-xs text-slate-500">
-              엘리베이터·대체경로 실시간 모니터링
+              엘리베이터·대체경로 모니터링 (중복 안내 제거 {statusCounts.total}건)
               {(dataSource === 'api' || dataSource === 'backend') && (
                 <span className="ml-2 text-primary-600">· 공공데이터 연동</span>
               )}
@@ -118,7 +141,7 @@ export function StatusView() {
             <tbody className="divide-y divide-slate-100 bg-white">
               {filtered.slice(0, 200).map((r) => (
                 <tr
-                  key={r.elevatorId}
+                  key={statusRecordDedupeKey(r)}
                   className="cursor-pointer hover:bg-slate-50"
                   onClick={() => focusStation(r.stationName)}
                 >
