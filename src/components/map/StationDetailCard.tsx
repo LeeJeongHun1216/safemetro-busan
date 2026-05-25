@@ -1,9 +1,7 @@
 import { useMemo } from 'react'
 import type { StationSummary } from '@/types/elevator'
-import {
-  getDistinctElevatorEntries,
-  shouldShowAlternativeRoute,
-} from '@/utils/elevatorDisplay'
+import { ElevatorRouteDetail } from '@/components/map/ElevatorRouteDetail'
+import { getDistinctElevatorEntries } from '@/utils/elevatorDisplay'
 import { STATUS_COLORS, STATUS_LABELS, LINE_COLORS } from '@/utils/statusColors'
 
 interface StationDetailCardProps {
@@ -17,9 +15,11 @@ export function StationDetailCard({ station, onClose }: StationDetailCardProps) 
     station.elevators.length
 
   const distinctElevators = useMemo(
-    () => getDistinctElevatorEntries(station.elevators, 5),
+    () => getDistinctElevatorEntries(station.elevators, 6),
     [station.elevators]
   )
+
+  const isTerminal = station.elevators.some((e) => e.isTerminalStation)
 
   return (
     <div className="station-detail-card animate-slide-up">
@@ -38,6 +38,11 @@ export function StationDetailCard({ station, onClose }: StationDetailCardProps) 
             {station.isTransferStation && (
               <span className="station-detail-card__badge rounded bg-slate-100 px-[clamp(0.2rem,0.8cqw,0.4rem)] py-0.5 font-medium text-slate-600">
                 환승역
+              </span>
+            )}
+            {isTerminal && (
+              <span className="station-detail-card__badge rounded bg-blue-50 px-[clamp(0.2rem,0.8cqw,0.4rem)] py-0.5 font-medium text-blue-700">
+                종착역
               </span>
             )}
           </div>
@@ -82,21 +87,10 @@ export function StationDetailCard({ station, onClose }: StationDetailCardProps) 
         <strong className="text-slate-800">{avgComplexity.toFixed(1)}</strong>
       </p>
 
-      <ul className="station-detail-card__list mt-[clamp(0.25rem,1.2cqw,0.5rem)] space-y-[clamp(0.2rem,0.8cqw,0.35rem)]">
+      <ul className="station-detail-card__list mt-[clamp(0.25rem,1.2cqw,0.5rem)] space-y-[clamp(0.25rem,1cqw,0.45rem)]">
         {distinctElevators.map((elv) => (
-          <li
-            key={`${elv.elevatorId}-${elv.elevatorInternalNo}-${elv.learningLabel}`}
-            className="station-detail-card__list-item rounded-lg bg-slate-50 leading-snug"
-          >
-            <span className="font-semibold text-slate-800">
-              {elv.elevatorInternalNo}호기
-            </span>
-            <span className="text-slate-600"> · {elv.learningLabel}</span>
-            {shouldShowAlternativeRoute(elv.learningLabel, elv.alternativeRoute) && (
-              <p className="mt-0.5 text-primary-600">
-                대체: {elv.alternativeRoute}
-              </p>
-            )}
+          <li key={elv.elevatorId}>
+            <ElevatorRouteDetail elevator={elv} />
           </li>
         ))}
       </ul>

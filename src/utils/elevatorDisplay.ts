@@ -1,29 +1,48 @@
 import type { ElevatorRecord } from '@/types/elevator'
 
-function normalizeText(text: string): string {
-  return text.replace(/\s+/g, '').toLowerCase()
+export function formatZoneFloor(
+  zone: string,
+  floor: string,
+  floorLevel: number
+): string {
+  const place = [zone, floor].filter(Boolean).join(' ').trim()
+  if (!place) return '-'
+  return `${place} (${floorLevel}층)`
 }
 
-/** 카드에 표시할 한 줄 문구 (중복 판별용) */
-export function elevatorDisplayText(elv: ElevatorRecord): string {
-  const parts = [`${elv.elevatorInternalNo}호기`, elv.learningLabel.trim()]
-  if (shouldShowAlternativeRoute(elv.learningLabel, elv.alternativeRoute)) {
-    parts.push(`대체: ${elv.alternativeRoute.trim()}`)
-  }
-  return parts.filter(Boolean).join(' · ')
+/** 출발 → 도착 이동 구간 (공공데이터 출발/도착 구분·층) */
+export function formatMovementPath(elv: ElevatorRecord): string {
+  const from = formatZoneFloor(
+    elv.departureZone,
+    elv.departureFloor,
+    elv.departureFloorLevel
+  )
+  const to = formatZoneFloor(
+    elv.arrivalZone,
+    elv.arrivalFloor,
+    elv.arrivalFloorLevel
+  )
+  return `${from} → ${to}`
 }
 
-export function shouldShowAlternativeRoute(
-  learningLabel: string,
-  alternativeRoute: string
-): boolean {
-  const alt = alternativeRoute.trim()
-  if (!alt) return false
-  const labelNorm = normalizeText(learningLabel)
-  const altNorm = normalizeText(alt)
-  if (labelNorm.includes(altNorm)) return false
-  if (altNorm.includes('대체') && labelNorm.includes('대체')) return false
-  return true
+export function formatRouteAvailableLabel(available: boolean): string {
+  return available ? '이용 가능' : '이용 불가'
+}
+
+export function formatMoveDirection(direction: string): string {
+  const d = direction.trim()
+  return d || '-'
+}
+
+/** 카드 중복 판별 (1순위 표시 필드 기준) */
+export function elevatorDedupeKey(elv: ElevatorRecord): string {
+  return [
+    elv.elevatorInternalNo,
+    elv.isRouteAvailable,
+    formatMovementPath(elv),
+    elv.moveDirection.trim(),
+    elv.alternativeRoute.trim(),
+  ].join('|')
 }
 
 /** 동일 안내 문구는 한 번만 표시 */
@@ -35,7 +54,7 @@ export function getDistinctElevatorEntries(
   const result: ElevatorRecord[] = []
 
   for (const elv of elevators) {
-    const key = elevatorDisplayText(elv)
+    const key = elevatorDedupeKey(elv)
     if (seen.has(key)) continue
     seen.add(key)
     result.push(elv)

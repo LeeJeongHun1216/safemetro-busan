@@ -61,7 +61,7 @@
   }
 
   .station-detail-card__list {
-    max-height: min(22cqh, 28%);
+    max-height: min(32cqh, 40%);
     overflow-y: auto;
   }
 
