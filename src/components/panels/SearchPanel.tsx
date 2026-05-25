@@ -13,14 +13,12 @@ function StationInput({
   label,
   value,
   onChange,
-  stationNames,
   isFavorite,
   onToggleFavorite,
 }: {
   label: string
   value: string
   onChange: (v: string) => void
-  stationNames: string[]
   isFavorite?: boolean
   onToggleFavorite?: () => void
 }) {
@@ -36,17 +34,11 @@ function StationInput({
           </span>
           <input
             type="text"
-            list={`stations-${label}`}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder="역명을 입력하세요"
             className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-sm outline-none transition focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100"
           />
-          <datalist id={`stations-${label}`}>
-            {stationNames.map((name) => (
-              <option key={name} value={name} />
-            ))}
-          </datalist>
         </div>
         {onToggleFavorite && (
           <button
@@ -158,7 +150,6 @@ export function SearchPanel() {
     departureStation,
     arrivalStation,
     userType,
-    stationNames,
     statusCounts,
     dataSource,
     isLoading,
@@ -203,7 +194,6 @@ export function SearchPanel() {
             label="출발역"
             value={departureStation}
             onChange={setDepartureStation}
-            stationNames={stationNames}
             isFavorite={isFavoriteStation(departureStation.trim())}
             onToggleFavorite={toggleDepartureFavorite}
           />
@@ -225,7 +215,6 @@ export function SearchPanel() {
             label="도착역"
             value={arrivalStation}
             onChange={setArrivalStation}
-            stationNames={stationNames}
             isFavorite={isFavoriteStation(arrivalStation.trim())}
             onToggleFavorite={toggleArrivalFavorite}
           />
