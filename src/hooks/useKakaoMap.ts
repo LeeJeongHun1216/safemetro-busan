@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { loadKakaoMapScript } from '@/utils/kakaoMapLoader'
-import { createMarkerSvg, STATUS_COLORS } from '@/utils/statusColors'
+import {
+  createStationMarkerElement,
+  resolveStationCoords,
+} from '@/utils/stationMapMarker'
 import type { StationSummary } from '@/types/elevator'
 
 const BUSAN_CENTER = { lat: 35.1796, lng: 129.0756 }
@@ -20,15 +23,13 @@ export function useKakaoMap({
 }: UseKakaoMapOptions) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<kakao.maps.Map | null>(null)
-  const markersRef = useRef<kakao.maps.Marker[]>([])
   const overlaysRef = useRef<kakao.maps.CustomOverlay[]>([])
+  const hasFittedBoundsRef = useRef(false)
   const [error, setError] = useState<string | null>(null)
   const [isMapReady, setIsMapReady] = useState(false)
 
   const clearMarkers = useCallback(() => {
-    markersRef.current.forEach((m) => m.setMap(null))
     overlaysRef.current.forEach((o) => o.setMap(null))
-    markersRef.current = []
     overlaysRef.current = []
   }, [])
 
@@ -45,75 +46,36 @@ export function useKakaoMap({
       }
     }
 
+    const bounds = new kakao.maps.LatLngBounds()
+    let placed = 0
+
     uniqueStations.forEach((station) => {
-      const position = new kakao.maps.LatLng(station.latitude, station.longitude)
-      const color = STATUS_COLORS[station.status]
-      const imageSrc = createMarkerSvg(color, 26)
-      const imageSize = new kakao.maps.Size(26, 26)
-      const markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize)
+      const coords = resolveStationCoords(station.latitude, station.longitude)
+      if (!coords) return
 
-      const marker = new kakao.maps.Marker({
+      const position = new kakao.maps.LatLng(coords.latitude, coords.longitude)
+      bounds.extend(position)
+
+      const htmlOverlay = new kakao.maps.CustomOverlay({
         position,
-        map,
-        image: markerImage,
-        title: station.stationName,
-        clickable: true,
-        zIndex: station.status === 'broken' ? 3 : 1,
-      })
-
-      kakao.maps.event.addListener(marker, 'click', () => {
-        onStationClick(station)
-      })
-
-      const labelOverlay = new kakao.maps.CustomOverlay({
-        position,
-        content: `<div style="
-          padding:2px 6px;
-          background:white;
-          border-radius:4px;
-          font-size:11px;
-          font-weight:600;
-          color:#334155;
-          box-shadow:0 1px 4px rgba(0,0,0,0.12);
-          transform:translate(-50%,-36px);
-          white-space:nowrap;
-          pointer-events:none;
-        ">${station.stationName}</div>`,
+        content: createStationMarkerElement(station, () => onStationClick(station)),
         map,
         xAnchor: 0.5,
-        yAnchor: 1,
-        zIndex: 2,
+        yAnchor: 0.5,
+        zIndex: station.status === 'broken' ? 5 : 3,
       })
+      overlaysRef.current.push(htmlOverlay)
 
-      if (station.status === 'broken') {
-        const brokenElv = station.elevators.find((e) => e.status === 'broken')
-        if (brokenElv) {
-          const alertOverlay = new kakao.maps.CustomOverlay({
-            position,
-            content: `<div style="
-              padding:4px 8px;
-              background:#fef2f2;
-              border:1px solid #fecaca;
-              border-radius:6px;
-              font-size:10px;
-              color:#dc2626;
-              font-weight:600;
-              transform:translate(-50%,-58px);
-              white-space:nowrap;
-              pointer-events:none;
-            ">${brokenElv.learningLabel}</div>`,
-            map,
-            xAnchor: 0.5,
-            yAnchor: 1,
-            zIndex: 4,
-          })
-          overlaysRef.current.push(alertOverlay)
-        }
-      }
-
-      markersRef.current.push(marker)
-      overlaysRef.current.push(labelOverlay)
+      placed++
     })
+
+    if (placed > 0) {
+      map.relayout()
+      if (placed > 1 && !hasFittedBoundsRef.current) {
+        map.setBounds(bounds)
+        hasFittedBoundsRef.current = true
+      }
+    }
   }, [stations, onStationClick, clearMarkers])
 
   useEffect(() => {
@@ -144,15 +106,30 @@ export function useKakaoMap({
   }, [onReady, clearMarkers])
 
   useEffect(() => {
-    if (isMapReady) renderMarkers()
-  }, [isMapReady, renderMarkers])
+    if (isMapReady && stations.length > 0) renderMarkers()
+  }, [isMapReady, stations.length, renderMarkers])
+
+  useEffect(() => {
+    if (!isMapReady || !containerRef.current) return
+
+    const observer = new ResizeObserver(() => {
+      const map = mapRef.current
+      if (!map) return
+      map.relayout()
+      if (stations.length > 0) renderMarkers()
+    })
+    observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [isMapReady, stations.length, renderMarkers])
 
   useEffect(() => {
     if (!isMapReady || !mapRef.current || !selectedStation) return
-    const pos = new kakao.maps.LatLng(
+    const coords = resolveStationCoords(
       selectedStation.latitude,
       selectedStation.longitude
     )
+    if (!coords) return
+    const pos = new kakao.maps.LatLng(coords.latitude, coords.longitude)
     mapRef.current.setCenter(pos)
     mapRef.current.setLevel(4)
   }, [selectedStation, isMapReady])

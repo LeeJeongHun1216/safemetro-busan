@@ -10,10 +10,15 @@ declare global {
     class LatLng {
       constructor(lat: number, lng: number)
     }
+    class LatLngBounds {
+      extend(latlng: LatLng): void
+    }
     class Map {
       constructor(container: HTMLElement, options: MapOptions)
       setCenter(latlng: LatLng): void
       setLevel(level: number): void
+      setBounds(bounds: LatLngBounds): void
+      relayout(): void
       getCenter(): LatLng
       getLevel(): number
     }
@@ -86,6 +91,7 @@ declare global {
     maps: {
       load(callback: () => void): void
       LatLng: typeof kakao.maps.LatLng
+      LatLngBounds: typeof kakao.maps.LatLngBounds
       Map: typeof kakao.maps.Map
       Marker: typeof kakao.maps.Marker
       MarkerImage: typeof kakao.maps.MarkerImage
