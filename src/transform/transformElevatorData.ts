@@ -20,6 +20,23 @@ function parseYn(value: string): boolean {
   return value === YES
 }
 
+/**
+ * 부산 지하철 역번호: 앞자리 = 호선 (119→1호선, 219→2호선, 406→4호선).
+ * 공공데이터 일부 행(서동·명장 등)은 `호선명`에 4~11이 들어가 실제 호선과 다름 → 역번호 우선.
+ */
+export function parseMetroLineNumber(
+  lineField: number,
+  stationNo: number
+): number {
+  if (stationNo >= 100) {
+    return Math.floor(stationNo / 100)
+  }
+  if (lineField >= 1 && lineField <= 4) {
+    return lineField
+  }
+  return lineField
+}
+
 function parseComplexityGrade(grade: string): ComplexityGrade {
   return complexityGradeMap[grade] ?? 'moderate'
 }
@@ -120,7 +137,7 @@ export function transformElevatorRecord(
     departureFloor: raw['출발층'],
     departureFloorLevel: raw['출발층위'],
     learningLabel: raw['학습라벨'],
-    lineNumber: raw['호선명'],
+    lineNumber: parseMetroLineNumber(raw['호선명'], raw['역번호']),
     isTransferStation: parseYn(raw['환승역 여부']),
     status,
   }
