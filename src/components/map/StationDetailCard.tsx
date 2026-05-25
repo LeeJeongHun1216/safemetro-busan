@@ -1,4 +1,9 @@
+import { useMemo } from 'react'
 import type { StationSummary } from '@/types/elevator'
+import {
+  getDistinctElevatorEntries,
+  shouldShowAlternativeRoute,
+} from '@/utils/elevatorDisplay'
 import { STATUS_COLORS, STATUS_LABELS, LINE_COLORS } from '@/utils/statusColors'
 
 interface StationDetailCardProps {
@@ -10,6 +15,11 @@ export function StationDetailCard({ station, onClose }: StationDetailCardProps) 
   const avgComplexity =
     station.elevators.reduce((a, e) => a + e.complexityScore, 0) /
     station.elevators.length
+
+  const distinctElevators = useMemo(
+    () => getDistinctElevatorEntries(station.elevators, 5),
+    [station.elevators]
+  )
 
   return (
     <div className="station-detail-card animate-slide-up">
@@ -73,17 +83,19 @@ export function StationDetailCard({ station, onClose }: StationDetailCardProps) 
       </p>
 
       <ul className="station-detail-card__list mt-[clamp(0.25rem,1.2cqw,0.5rem)] space-y-[clamp(0.2rem,0.8cqw,0.35rem)]">
-        {station.elevators.slice(0, 5).map((elv) => (
+        {distinctElevators.map((elv) => (
           <li
-            key={elv.elevatorId}
+            key={`${elv.elevatorId}-${elv.elevatorInternalNo}-${elv.learningLabel}`}
             className="station-detail-card__list-item rounded-lg bg-slate-50 leading-snug"
           >
             <span className="font-semibold text-slate-800">
               {elv.elevatorInternalNo}호기
             </span>
             <span className="text-slate-600"> · {elv.learningLabel}</span>
-            {elv.alternativeRoute && (
-              <p className="mt-0.5 text-primary-600">대체: {elv.alternativeRoute}</p>
+            {shouldShowAlternativeRoute(elv.learningLabel, elv.alternativeRoute) && (
+              <p className="mt-0.5 text-primary-600">
+                대체: {elv.alternativeRoute}
+              </p>
             )}
           </li>
         ))}
