@@ -2,7 +2,11 @@ import { useMemo } from 'react'
 import type { StationSummary } from '@/types/elevator'
 import { ElevatorRouteDetail } from '@/components/map/ElevatorRouteDetail'
 import { getDistinctElevatorEntries } from '@/utils/elevatorDisplay'
-import { STATUS_COLORS, STATUS_LABELS, LINE_COLORS } from '@/utils/statusColors'
+import {
+  STATUS_COLORS,
+  STATUS_LABELS,
+  getLineColor,
+} from '@/utils/statusColors'
 
 interface StationDetailCardProps {
   station: StationSummary
@@ -31,7 +35,7 @@ export function StationDetailCard({ station, onClose }: StationDetailCardProps) 
             </h3>
             <span
               className="station-detail-card__badge rounded px-[clamp(0.2rem,0.8cqw,0.4rem)] py-0.5 font-bold text-white"
-              style={{ backgroundColor: LINE_COLORS[station.lineNumber] }}
+              style={{ backgroundColor: getLineColor(station.lineNumber) }}
             >
               {station.lineNumber}호선
             </span>

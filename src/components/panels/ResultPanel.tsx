@@ -1,6 +1,6 @@
 import { useAppStore } from '@/store/useAppStore'
 import { Card } from '@/components/ui/Card'
-import { LINE_COLORS } from '@/utils/statusColors'
+import { getLineColor } from '@/utils/statusColors'
 
 export function ResultPanel() {
   const { recommendation, isRecommending } = useAppStore()
@@ -94,7 +94,7 @@ export function ResultPanel() {
                 className="relative z-10 mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
                 style={{
                   backgroundColor: step.lineNumber
-                    ? LINE_COLORS[step.lineNumber]
+                    ? getLineColor(step.lineNumber)
                     : '#94a3b8',
                 }}
               >

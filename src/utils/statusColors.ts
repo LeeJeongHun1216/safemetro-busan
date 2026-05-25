@@ -12,11 +12,16 @@ export const STATUS_LABELS: Record<ElevatorStatus, string> = {
   broken: '고장',
 }
 
+/** 부산 지하철 공식 상징색 */
 export const LINE_COLORS: Record<number, string> = {
-  1: '#f97316',
-  2: '#22c55e',
-  3: '#eab308',
-  4: '#3b82f6',
+  1: '#F06A00',
+  2: '#81BF48',
+  3: '#BB8C00',
+  4: '#217DCB',
+}
+
+export function getLineColor(lineNumber: number): string {
+  return LINE_COLORS[lineNumber] ?? '#64748b'
 }
 
 export function createMarkerSvg(color: string, size = 28): string {

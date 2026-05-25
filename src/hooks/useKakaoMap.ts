@@ -69,7 +69,7 @@ export function useKakaoMap({
         map,
         xAnchor: 0.5,
         yAnchor: 0.5,
-        zIndex: station.status === 'broken' ? 5 : 3,
+        zIndex: station.isTransferStation ? 6 : 4,
       })
       overlaysRef.current.push(htmlOverlay)
 

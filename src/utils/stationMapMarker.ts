@@ -1,7 +1,9 @@
-import { STATUS_COLORS } from '@/utils/statusColors'
+import { getLineColor } from '@/utils/statusColors'
+import { createSamtaegukSvg } from '@/utils/samtaegukMarker'
 import type { StationSummary } from '@/types/elevator'
 
-const MARKER_DOT_SIZE = 28
+const LINE_MARKER_SIZE = 28
+const TRANSFER_MARKER_SIZE = 34
 
 export function isValidBusanCoord(lat: number, lng: number): boolean {
   return (
@@ -28,30 +30,9 @@ export function resolveStationCoords(
   return null
 }
 
-export function createStationMarkerElement(
-  station: StationSummary,
-  onClick: () => void
-): HTMLElement {
-  const color = STATUS_COLORS[station.status]
-  const root = document.createElement('div')
-  root.setAttribute('role', 'button')
-  root.setAttribute('aria-label', `${station.stationName} 역`)
-  root.style.cssText =
-    'display:flex;flex-direction:column;align-items:center;cursor:pointer;user-select:none;'
-
-  const dot = document.createElement('div')
-  dot.style.cssText = [
-    `width:${MARKER_DOT_SIZE}px`,
-    `height:${MARKER_DOT_SIZE}px`,
-    `background:${color}`,
-    'border:3px solid #fff',
-    'border-radius:50%',
-    'box-shadow:0 2px 8px rgba(15,23,42,0.35)',
-  ].join(';')
-  root.appendChild(dot)
-
+function appendStationLabel(root: HTMLElement, stationName: string) {
   const label = document.createElement('div')
-  label.textContent = station.stationName
+  label.textContent = stationName
   label.style.cssText = [
     'margin-top:4px',
     'padding:2px 8px',
@@ -65,29 +46,45 @@ export function createStationMarkerElement(
     'line-height:1.3',
   ].join(';')
   root.appendChild(label)
+}
 
-  if (station.status === 'broken') {
-    const brokenElv = station.elevators.find((e) => e.status === 'broken')
-    if (brokenElv) {
-      const alert = document.createElement('div')
-      alert.textContent = brokenElv.learningLabel
-      alert.style.cssText = [
-        'margin-bottom:4px',
-        'padding:3px 8px',
-        'background:#fef2f2',
-        'border:1px solid #fecaca',
-        'border-radius:6px',
-        'font-size:10px',
-        'font-weight:600',
-        'color:#dc2626',
-        'white-space:nowrap',
-        'max-width:160px',
-        'overflow:hidden',
-        'text-overflow:ellipsis',
-      ].join(';')
-      root.insertBefore(alert, dot)
-    }
+export function createStationMarkerElement(
+  station: StationSummary,
+  onClick: () => void
+): HTMLElement {
+  const root = document.createElement('div')
+  root.setAttribute('role', 'button')
+  root.setAttribute(
+    'aria-label',
+    `${station.stationName} 역${station.isTransferStation ? ' 환승' : ''}`
+  )
+  root.style.cssText =
+    'display:flex;flex-direction:column;align-items:center;cursor:pointer;user-select:none;'
+
+  if (station.isTransferStation) {
+    const sam = document.createElement('div')
+    sam.innerHTML = createSamtaegukSvg(TRANSFER_MARKER_SIZE)
+    sam.style.cssText = [
+      `width:${TRANSFER_MARKER_SIZE}px`,
+      `height:${TRANSFER_MARKER_SIZE}px`,
+      'filter:drop-shadow(0 2px 8px rgba(15,23,42,0.35))',
+    ].join(';')
+    root.appendChild(sam)
+  } else {
+    const color = getLineColor(station.lineNumber)
+    const dot = document.createElement('div')
+    dot.style.cssText = [
+      `width:${LINE_MARKER_SIZE}px`,
+      `height:${LINE_MARKER_SIZE}px`,
+      `background:${color}`,
+      'border:3px solid #fff',
+      'border-radius:50%',
+      'box-shadow:0 2px 8px rgba(15,23,42,0.35)',
+    ].join(';')
+    root.appendChild(dot)
   }
+
+  appendStationLabel(root, station.stationName)
 
   root.addEventListener('click', (e) => {
     e.stopPropagation()

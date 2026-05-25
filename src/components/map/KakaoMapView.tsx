@@ -1,7 +1,6 @@
 import { useCallback } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 import { useKakaoMap } from '@/hooks/useKakaoMap'
-import { MapLegend } from '@/components/map/MapLegend'
 import { MapControls } from '@/components/map/MapControls'
 import { StationDetailCard } from '@/components/map/StationDetailCard'
 
@@ -66,14 +65,11 @@ export function KakaoMapView() {
       )}
 
       {(isMapReady || mapReady) && !error && (
-        <>
-          <MapLegend />
-          <MapControls
-            onZoomIn={zoomIn}
-            onZoomOut={zoomOut}
-            onReset={resetCenter}
-          />
-        </>
+        <MapControls
+          onZoomIn={zoomIn}
+          onZoomOut={zoomOut}
+          onReset={resetCenter}
+        />
       )}
 
       {selectedStation && (

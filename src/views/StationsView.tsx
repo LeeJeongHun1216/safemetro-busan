@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 import { Card } from '@/components/ui/Card'
-import { STATUS_COLORS, STATUS_LABELS, LINE_COLORS } from '@/utils/statusColors'
+import { STATUS_COLORS, STATUS_LABELS, getLineColor } from '@/utils/statusColors'
 
 const LINES = [1, 2, 3, 4] as const
 
@@ -97,7 +97,7 @@ export function StationsView() {
                     <span
                       className="mt-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-bold text-white"
                       style={{
-                        backgroundColor: LINE_COLORS[station.lineNumber],
+                        backgroundColor: getLineColor(station.lineNumber),
                       }}
                     >
                       {station.lineNumber}호선
