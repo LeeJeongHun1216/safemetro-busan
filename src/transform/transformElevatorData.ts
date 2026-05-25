@@ -47,33 +47,49 @@ function parseAlternativeRouteType(type: string): AlternativeRouteType {
     : 'NORMAL'
 }
 
-/** 학습라벨·경로 이용 가능 여부·대체경로유형 기반 상태 추론 */
+/**
+ * 공공데이터 필드 기반 상태 추론 (API에 "일부 장애" 컬럼 없음)
+ *
+ * - broken: 경로 불가 또는 고장·이용불가가 명확한 경우
+ * - partial: "부분 장애", 점검, 일부 등 실제 제한이 드러난 경우만
+ * - normal: "정상 운행", "대체 엘리베이터 이용"(안내) 등
+ *
+ * ※ '대체' 단어만으로는 partial 처리하지 않음 (과다 분류 방지)
+ * ※ ALT_ELV는 부산 데이터 대부분이 NORMAL/ALT_ELV라 partial 기준에서 제외
+ */
 export function deriveElevatorStatus(
   record: RawElevatorRecord
 ): ElevatorStatus {
-  const label = record['학습라벨'] ?? ''
+  const label = (record['학습라벨'] ?? '').trim()
   const altType = record['대체경로유형'] ?? ''
   const available = record['경로 이용 가능 여부'] === YES
 
-  if (
-    !available ||
+  const hasBrokenKeyword =
     label.includes('고장') ||
     label.includes('이용 불가') ||
+    label.includes('이용불가') ||
     label.includes('이동불가') ||
-    altType.includes('이동 불가') ||
-    altType.includes('이동불가')
-  ) {
+    label.includes('이동 불가')
+
+  const hasMovementBlockType =
+    altType.includes('이동 불가') || altType.includes('이동불가')
+
+  if (!available || hasBrokenKeyword || hasMovementBlockType) {
     return 'broken'
   }
-  if (
+
+  const isExplicitPartial =
     label.includes('부분') ||
-    label.includes('대체') ||
-    label.includes('점검') ||
-    altType === 'ALT_STAIRS' ||
-    altType === 'ALT_ELV'
-  ) {
+    label.includes('일부') ||
+    (label.includes('점검') && !label.includes('정상'))
+
+  const isStairsOnlyAlt =
+    altType === 'ALT_STAIRS' && !label.includes('정상')
+
+  if (isExplicitPartial || isStairsOnlyAlt) {
     return 'partial'
   }
+
   return 'normal'
 }
 
