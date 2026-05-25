@@ -20,7 +20,14 @@ const LINE3_COORD_SOURCE_BY_STATION_NO: Partial<Record<number, number>> = {
   314: 304, // 구포 → 물만골
   315: 303, // 강서구청 → 배산
   316: 302, // 체육공원 → 망미
-  // 208(2호선 수영)·317(3호선 대저)는 각각 원본 좌표 유지 (교환 시 환승구역 마커 뒤바뀜)
+  // 208(2호선 수영)은 원본 좌표 유지
+}
+
+/** 공공데이터에 수영(동쪽) 좌표가 붙어 있는 3호선 종점 — 실제 강서구 대저역 */
+const MANUAL_STATION_COORDS: Partial<
+  Record<number, { latitude: number; longitude: number }>
+> = {
+  317: { latitude: 35.2175, longitude: 128.96222 },
 }
 
 function buildCoordByStationNo(
@@ -43,6 +50,13 @@ export function applyStationCoordinateFixes(records: ElevatorRecord[]): void {
   const byNo = buildCoordByStationNo(records)
 
   for (const r of records) {
+    const manual = MANUAL_STATION_COORDS[r.stationNo]
+    if (manual) {
+      r.latitude = manual.latitude
+      r.longitude = manual.longitude
+      continue
+    }
+
     const sourceNo = LINE3_COORD_SOURCE_BY_STATION_NO[r.stationNo]
     if (sourceNo === undefined) continue
 
