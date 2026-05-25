@@ -3,12 +3,16 @@ import {
   transformElevatorRecord,
   groupByStation,
 } from '@/transform/transformElevatorData'
+import { applyStationCoordinateFixes } from '@/utils/stationCoordinateFix'
 import type { ElevatorRecord, StationSummary } from '@/types/elevator'
 import type { StatusCounts } from '@/data/loadElevatorData'
 
 /** 개발/테스트용 정적 Mock 데이터 */
-export const mockElevatorRecords: ElevatorRecord[] =
-  rawElevatorApiResponse.data.map(transformElevatorRecord)
+export const mockElevatorRecords: ElevatorRecord[] = (() => {
+  const records = rawElevatorApiResponse.data.map(transformElevatorRecord)
+  applyStationCoordinateFixes(records)
+  return records
+})()
 
 export const mockStationSummaries: StationSummary[] =
   groupByStation(mockElevatorRecords)

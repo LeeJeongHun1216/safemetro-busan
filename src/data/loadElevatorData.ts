@@ -5,6 +5,7 @@ import {
   transformElevatorRecord,
   groupByStation,
 } from '@/transform/transformElevatorData'
+import { applyStationCoordinateFixes } from '@/utils/stationCoordinateFix'
 import type {
   ElevatorRecord,
   StationSummary,
@@ -41,7 +42,9 @@ function computeStatusCounts(records: ElevatorRecord[]): StatusCounts {
 }
 
 function recordsFromRaw(rawList: RawElevatorRecord[]) {
-  return rawList.map(transformElevatorRecord)
+  const records = rawList.map(transformElevatorRecord)
+  applyStationCoordinateFixes(records)
+  return records
 }
 
 export async function loadElevatorDataset(): Promise<ElevatorDataset> {
