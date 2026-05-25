@@ -24,7 +24,7 @@ export function KakaoMapView() {
     })
 
   return (
-    <main className="relative min-h-[320px] flex-1 bg-slate-100">
+    <main className="map-panel relative min-h-[320px] flex-1 bg-slate-100">
       <div ref={containerRef} className="absolute inset-0 h-full w-full" />
 
       {!isMapReady && !error && (
