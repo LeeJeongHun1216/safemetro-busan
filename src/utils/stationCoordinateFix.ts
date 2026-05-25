@@ -20,8 +20,7 @@ const LINE3_COORD_SOURCE_BY_STATION_NO: Partial<Record<number, number>> = {
   314: 304, // 구포 → 물만골
   315: 303, // 강서구청 → 배산
   316: 302, // 체육공원 → 망미
-  317: 208, // 대저 → 수영
-  208: 317, // 수영(2호선) ↔ 대저
+  // 208(2호선 수영)·317(3호선 대저)는 각각 원본 좌표 유지 (교환 시 환승구역 마커 뒤바뀜)
 }
 
 function buildCoordByStationNo(

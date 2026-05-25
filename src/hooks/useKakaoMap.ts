@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { loadKakaoMapScript } from '@/utils/kakaoMapLoader'
+import { mergeStationsAtSameLocation } from '@/utils/mergeMapMarkers'
 import {
   createStationMarkerElement,
   resolveStationCoords,
@@ -52,10 +53,12 @@ export function useKakaoMap({
       }
     }
 
+    const markersToShow = mergeStationsAtSameLocation(uniqueStations.values())
+
     const bounds = new kakao.maps.LatLngBounds()
     let placed = 0
 
-    uniqueStations.forEach((station) => {
+    markersToShow.forEach((station) => {
       const coords = resolveStationCoords(station.latitude, station.longitude)
       if (!coords) return
 
