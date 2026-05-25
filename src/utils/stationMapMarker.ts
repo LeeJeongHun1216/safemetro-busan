@@ -67,6 +67,9 @@ export function createStationMarkerElement(
     sam.style.cssText = [
       `width:${TRANSFER_MARKER_SIZE}px`,
       `height:${TRANSFER_MARKER_SIZE}px`,
+      'flex-shrink:0',
+      'border-radius:50%',
+      'overflow:hidden',
       'filter:drop-shadow(0 2px 8px rgba(15,23,42,0.35))',
     ].join(';')
     root.appendChild(sam)
