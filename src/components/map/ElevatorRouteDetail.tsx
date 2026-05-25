@@ -1,5 +1,6 @@
 import type { ElevatorRecord } from '@/types/elevator'
 import {
+  formatAlternativeRouteLine,
   formatMovementPath,
   formatMoveDirection,
   formatRouteAvailableLabel,
@@ -11,7 +12,7 @@ interface ElevatorRouteDetailProps {
 
 export function ElevatorRouteDetail({ elevator }: ElevatorRouteDetailProps) {
   const routeLabel = formatRouteAvailableLabel(elevator.isRouteAvailable)
-  const altRoute = elevator.alternativeRoute.trim()
+  const altRouteLine = formatAlternativeRouteLine(elevator)
 
   return (
     <div className="station-detail-card__list-item rounded-lg border border-slate-100 bg-slate-50 p-[clamp(0.45rem,1.6cqw,0.65rem)] leading-snug">
@@ -38,10 +39,9 @@ export function ElevatorRouteDetail({ elevator }: ElevatorRouteDetailProps) {
         {formatMovementPath(elevator)}
       </p>
 
-      {altRoute ? (
+      {altRouteLine ? (
         <p className="mt-1 text-[10px] font-medium text-primary-700">
-          <span className="text-primary-600">대체 경로 </span>
-          {altRoute}
+          {altRouteLine}
         </p>
       ) : (
         <p className="mt-1 text-[10px] text-slate-400">대체 경로 정보 없음</p>

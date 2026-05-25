@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 import { Card } from '@/components/ui/Card'
+import { getDistinctAlternativeRouteLines } from '@/utils/elevatorDisplay'
 import { STATUS_COLORS, STATUS_LABELS, getLineColor } from '@/utils/statusColors'
 
 const LINES = [1, 2, 3, 4] as const
@@ -120,6 +121,16 @@ export function StationsView() {
                   <span className="mt-2 inline-block rounded bg-slate-100 px-2 py-0.5 text-[10px] text-slate-600">
                     환승역
                   </span>
+                )}
+                {getDistinctAlternativeRouteLines(station.elevators, 3).map(
+                  (line) => (
+                    <p
+                      key={line}
+                      className="mt-2 text-[10px] font-medium text-slate-700"
+                    >
+                      {line}
+                    </p>
+                  )
                 )}
                 <p className="mt-2 text-[10px] text-primary-600">
                   지도에서 보기 →

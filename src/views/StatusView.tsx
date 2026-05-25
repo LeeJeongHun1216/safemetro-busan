@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 import {
+  formatAlternativeRouteLine,
   getDistinctStatusRecords,
   statusRecordDedupeKey,
 } from '@/utils/elevatorDisplay'
@@ -163,8 +164,8 @@ export function StatusView() {
                       {STATUS_LABELS[r.status]}
                     </span>
                   </td>
-                  <td className="max-w-[200px] truncate px-4 py-2.5 text-xs text-slate-600">
-                    {r.alternativeRoute || r.learningLabel}
+                  <td className="max-w-[220px] truncate px-4 py-2.5 text-xs text-slate-600">
+                    {formatAlternativeRouteLine(r) ?? r.learningLabel}
                   </td>
                   <td className="px-4 py-2.5 text-slate-600">
                     {r.complexityScore > 0 ? r.complexityScore : '-'}
