@@ -3,7 +3,8 @@ import { Card } from '@/components/ui/Card'
 import { getLineColor } from '@/utils/statusColors'
 
 export function ResultPanel() {
-  const { recommendation, isRecommending } = useAppStore()
+  const routeComparison = useAppStore((s) => s.routeComparison)
+  const isRecommending = useAppStore((s) => s.isRecommending)
 
   if (isRecommending) {
     return (
@@ -17,7 +18,7 @@ export function ResultPanel() {
     )
   }
 
-  if (!recommendation) {
+  if (!routeComparison) {
     return (
       <aside className="flex w-full shrink-0 flex-col border-l border-slate-100 bg-white p-4 lg:w-[340px] xl:w-[380px]">
         <h2 className="text-base font-bold text-slate-900">AI 추천 결과</h2>
@@ -34,8 +35,9 @@ export function ResultPanel() {
     )
   }
 
-  const { steps, estimatedMinutes, transferCount, convenienceScore } =
-    recommendation
+  const { recommended, shortest, pathsAreEqual, whyRecommended, comparisonSummary } =
+    routeComparison
+  const { steps, estimatedMinutes, transferCount, convenienceScore } = recommended
 
   return (
     <aside className="flex w-full shrink-0 flex-col overflow-y-auto border-l border-slate-100 bg-white p-4 lg:w-[340px] xl:w-[380px]">
@@ -45,15 +47,61 @@ export function ResultPanel() {
         <p className="flex items-start gap-2 text-xs leading-relaxed text-green-800">
           <span className="text-base">👍</span>
           <span>
-            <strong>추천 경로.</strong> {recommendation.aiInsight}
+            <strong>추천 경로.</strong> {recommended.aiInsight}
           </span>
         </p>
       </div>
 
+      <Card className="mt-3 p-3">
+        <h3 className="text-xs font-bold text-slate-800">경로 비교</h3>
+        <p className="mt-1 text-[10px] leading-relaxed text-slate-600">
+          {comparisonSummary}
+        </p>
+        <div className="mt-3 grid grid-cols-2 gap-2 text-[10px]">
+          <div className="rounded-lg border-2 border-primary-200 bg-primary-50/50 p-2">
+            <p className="font-bold text-primary-800">접근성 우선 (추천)</p>
+            <p className="mt-1 text-slate-700">
+              {recommended.pathStationNames.length}개 역 · {recommended.estimatedMinutes}분 ·
+              환승 {recommended.transferCount}회
+            </p>
+          </div>
+          <div
+            className={`rounded-lg border p-2 ${
+              pathsAreEqual
+                ? 'border-slate-200 bg-slate-50'
+                : 'border-slate-200 bg-white'
+            }`}
+          >
+            <p className="font-bold text-slate-700">최단 경로</p>
+            <p className="mt-1 text-slate-600">
+              {shortest.pathStationNames.length}개 역 · {shortest.estimatedMinutes}분 · 환승{' '}
+              {shortest.transferCount}회
+            </p>
+            {pathsAreEqual && (
+              <p className="mt-1 text-[9px] text-slate-500">추천과 동일</p>
+            )}
+          </div>
+        </div>
+        {!pathsAreEqual && (
+          <p className="mt-2 text-[9px] text-slate-500">
+            지도: 굵은 선=추천 · 점선=최단
+          </p>
+        )}
+      </Card>
+
+      <Card className="mt-3 border-primary-100 bg-primary-50/30 p-3">
+        <h3 className="text-xs font-bold text-primary-900">왜 이 경로인가요?</h3>
+        <ul className="mt-2 list-inside list-disc space-y-1 text-[10px] leading-relaxed text-primary-900">
+          {whyRecommended.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      </Card>
+
       <div className="mt-3 animate-fade-in">
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-bold text-slate-900">
-            {recommendation.departureStation}역 → {recommendation.arrivalStation}역
+            {recommended.departureStation}역 → {recommended.arrivalStation}역
           </h3>
           <span className="rounded-md bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">
             추천 경로
@@ -83,7 +131,7 @@ export function ResultPanel() {
       </div>
 
       <Card className="mt-4 p-4 animate-slide-up">
-        <h4 className="text-sm font-bold text-slate-900">경로 상세</h4>
+        <h4 className="text-sm font-bold text-slate-900">경로 상세 (추천)</h4>
         <ol className="mt-4 space-y-0">
           {steps.map((step, idx) => (
             <li key={step.id} className="relative flex gap-3 pb-5 last:pb-0">
@@ -135,7 +183,7 @@ export function ResultPanel() {
         <p className="flex items-start gap-2 text-xs leading-relaxed text-primary-800">
           <span className="text-base">🧠</span>
           <span>
-            <strong>AI 분석 요약.</strong> {recommendation.aiSummary}
+            <strong>AI 분석 요약.</strong> {recommended.aiSummary}
           </span>
         </p>
       </div>

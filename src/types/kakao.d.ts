@@ -73,6 +73,20 @@ declare global {
       open(map: Map, marker: Marker): void
       close(): void
     }
+    class Polyline {
+      constructor(options: PolylineOptions)
+      setMap(map: Map | null): void
+      setPath(path: LatLng[]): void
+    }
+    interface PolylineOptions {
+      path: LatLng[]
+      strokeWeight?: number
+      strokeColor?: string
+      strokeOpacity?: number
+      strokeStyle?: 'solid' | 'shortdash' | 'shortdot'
+      map?: Map
+      zIndex?: number
+    }
     namespace event {
       function addListener(
         target: Map | Marker,
@@ -99,6 +113,7 @@ declare global {
       Point: typeof kakao.maps.Point
       CustomOverlay: typeof kakao.maps.CustomOverlay
       InfoWindow: typeof kakao.maps.InfoWindow
+      Polyline: typeof kakao.maps.Polyline
       event: typeof kakao.maps.event
     }
   }

@@ -121,4 +121,13 @@ export interface RouteRecommendation {
   aiSummary: string
   steps: RouteStep[]
   pathStationNames: string[]
+  routeType: 'accessibility' | 'shortest'
+}
+
+export interface RouteComparisonResult {
+  recommended: RouteRecommendation
+  shortest: RouteRecommendation
+  pathsAreEqual: boolean
+  whyRecommended: string[]
+  comparisonSummary: string
 }

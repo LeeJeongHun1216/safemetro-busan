@@ -5,11 +5,14 @@ import {
   saveFavoriteStations,
 } from '@/utils/favorites'
 import type { StatusCounts } from '@/data/loadElevatorData'
-import { recommendRoute, getStationNames } from '@/utils/routeRecommendation'
+import {
+  recommendRouteComparison,
+  getStationNames,
+} from '@/utils/routeRecommendation'
 import type {
   UserType,
   StationSummary,
-  RouteRecommendation,
+  RouteComparisonResult,
   DataSource,
   StatusFilter,
   NavTab,
@@ -31,8 +34,10 @@ interface AppState {
   arrivalStation: string
   userType: UserType
   selectedStation: StationSummary | null
-  recommendation: RouteRecommendation | null
+  routeComparison: RouteComparisonResult | null
+  dataLoadedAt: number | null
   isLoading: boolean
+  isRefreshing: boolean
   isRecommending: boolean
   mapReady: boolean
   mobilePanel: 'search' | 'map' | 'result'
@@ -52,6 +57,7 @@ interface AppState {
   swapStations: () => void
   requestRecommendation: () => Promise<void>
   loadData: () => Promise<void>
+  refreshData: () => Promise<void>
   focusStation: (name: string) => void
   toggleFavoritesOpen: () => void
   addFavoriteStation: (name: string) => void
@@ -81,8 +87,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   arrivalStation: '',
   userType: 'wheelchair',
   selectedStation: null,
-  recommendation: null,
+  routeComparison: null,
+  dataLoadedAt: null,
   isLoading: true,
+  isRefreshing: false,
   isRecommending: false,
   mapReady: false,
   mobilePanel: 'map',
@@ -142,7 +150,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   isFavoriteStation: (name) => get().favoriteStations.includes(name),
 
   loadData: async () => {
-    set({ isLoading: true, dataError: null })
+    const silent = get().isRefreshing
+    if (!silent) set({ isLoading: true, dataError: null })
+    else set({ dataError: null })
 
     try {
       const dataset = await loadElevatorDataset()
@@ -154,14 +164,21 @@ export const useAppStore = create<AppState>((set, get) => ({
         stationNames: names,
         statusCounts: dataset.statusCounts,
         dataSource: dataset.source,
+        dataLoadedAt: Date.now(),
         isLoading: false,
+        isRefreshing: false,
       })
 
     } catch (error) {
       const message =
         error instanceof Error ? error.message : '데이터 로드에 실패했습니다.'
-      set({ dataError: message, isLoading: false })
+      set({ dataError: message, isLoading: false, isRefreshing: false })
     }
+  },
+
+  refreshData: async () => {
+    set({ isRefreshing: true, dataError: null })
+    await get().loadData()
   },
 
   requestRecommendation: async () => {
@@ -169,11 +186,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (stations.length === 0) return
     if (!departureStation.trim() || !arrivalStation.trim()) return
 
-    set({ isRecommending: true, recommendation: null })
+    set({ isRecommending: true, routeComparison: null, mobilePanel: 'result' })
 
     await new Promise((r) => setTimeout(r, 500))
 
-    const result = recommendRoute(
+    const result = recommendRouteComparison(
       departureStation,
       arrivalStation,
       userType,
@@ -181,8 +198,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     )
 
     set({
-      recommendation: result,
+      routeComparison: result,
       isRecommending: false,
+      mobilePanel: 'result',
     })
   },
 }))

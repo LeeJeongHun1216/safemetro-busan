@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Header } from '@/components/layout/Header'
+import { DataStatusBar } from '@/components/layout/DataStatusBar'
 import { MobileNav } from '@/components/layout/MobileNav'
 import { RouteView } from '@/views/RouteView'
 import { StationsView } from '@/views/StationsView'
@@ -20,6 +21,7 @@ export function MainPage() {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white">
       <Header />
+      <DataStatusBar />
 
       {dataError && (
         <div className="shrink-0 bg-amber-50 px-4 py-2 text-center text-xs text-amber-800">

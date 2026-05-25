@@ -2,16 +2,22 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { loadKakaoMapScript } from '@/utils/kakaoMapLoader'
 import { mergeStationsAtSameLocation } from '@/utils/mergeMapMarkers'
 import {
+  buildRouteMapSegments,
+  collectPathBounds,
+} from '@/utils/routeMapPath'
+import {
   createStationMarkerElement,
   resolveStationCoords,
 } from '@/utils/stationMapMarker'
-import type { StationSummary } from '@/types/elevator'
+import type { RouteComparisonResult, StationSummary } from '@/types/elevator'
+import { buildMetroGraphFromStations } from '@/utils/metroGraph'
 
 const BUSAN_CENTER = { lat: 35.1796, lng: 129.0756 }
 
 interface UseKakaoMapOptions {
   stations: StationSummary[]
   selectedStation: StationSummary | null
+  routeComparison: RouteComparisonResult | null
   onStationClick: (station: StationSummary) => void
   onReady?: () => void
 }
@@ -19,12 +25,14 @@ interface UseKakaoMapOptions {
 export function useKakaoMap({
   stations,
   selectedStation,
+  routeComparison,
   onStationClick,
   onReady,
 }: UseKakaoMapOptions) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<kakao.maps.Map | null>(null)
   const overlaysRef = useRef<kakao.maps.CustomOverlay[]>([])
+  const polylinesRef = useRef<kakao.maps.Polyline[]>([])
   const hasFittedBoundsRef = useRef(false)
   const onStationClickRef = useRef(onStationClick)
   const onReadyRef = useRef(onReady)
@@ -38,6 +46,65 @@ export function useKakaoMap({
     overlaysRef.current.forEach((o) => o.setMap(null))
     overlaysRef.current = []
   }, [])
+
+  const clearPolylines = useCallback(() => {
+    polylinesRef.current.forEach((p) => p.setMap(null))
+    polylinesRef.current = []
+  }, [])
+
+  const drawRoutePolylines = useCallback(() => {
+    const map = mapRef.current
+    if (!map || !routeComparison) {
+      clearPolylines()
+      return
+    }
+
+    clearPolylines()
+    const graph = buildMetroGraphFromStations(stations)
+
+    const drawPath = (
+      path: string[],
+      strokeWeight: number,
+      strokeOpacity: number,
+      strokeStyle: 'solid' | 'shortdash'
+    ) => {
+      const segments = buildRouteMapSegments(path, stations, graph)
+      for (const seg of segments) {
+        const linePath = seg.path.map(
+          (p) => new kakao.maps.LatLng(p.lat, p.lng)
+        )
+        const polyline = new kakao.maps.Polyline({
+          path: linePath,
+          strokeWeight,
+          strokeColor: seg.color,
+          strokeOpacity,
+          strokeStyle,
+          map,
+          zIndex: strokeStyle === 'solid' ? 2 : 1,
+        })
+        polylinesRef.current.push(polyline)
+      }
+    }
+
+    const { recommended, shortest, pathsAreEqual } = routeComparison
+
+    if (!pathsAreEqual) {
+      drawPath(shortest.pathStationNames, 4, 0.55, 'shortdash')
+    }
+    drawPath(recommended.pathStationNames, 6, 0.9, 'solid')
+
+    const bounds = new kakao.maps.LatLngBounds()
+    for (const p of collectPathBounds(recommended.pathStationNames, stations)) {
+      bounds.extend(new kakao.maps.LatLng(p.lat, p.lng))
+    }
+    if (!pathsAreEqual) {
+      for (const p of collectPathBounds(shortest.pathStationNames, stations)) {
+        bounds.extend(new kakao.maps.LatLng(p.lat, p.lng))
+      }
+    }
+    map.relayout()
+    map.setBounds(bounds)
+  }, [routeComparison, stations, clearPolylines])
 
   const renderMarkers = useCallback(() => {
     const map = mapRef.current
@@ -80,14 +147,14 @@ export function useKakaoMap({
       placed++
     })
 
-    if (placed > 0) {
+    if (placed > 0 && !routeComparison) {
       map.relayout()
       if (placed > 1 && !hasFittedBoundsRef.current) {
         map.setBounds(bounds)
         hasFittedBoundsRef.current = true
       }
     }
-  }, [stations, clearMarkers])
+  }, [stations, routeComparison, clearMarkers])
 
   useEffect(() => {
     let cancelled = false
@@ -112,15 +179,20 @@ export function useKakaoMap({
     return () => {
       cancelled = true
       clearMarkers()
+      clearPolylines()
       mapRef.current = null
       setIsMapReady(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- map init once per mount
-  }, [clearMarkers])
+  }, [clearMarkers, clearPolylines])
 
   useEffect(() => {
     if (isMapReady && stations.length > 0) renderMarkers()
   }, [isMapReady, stations, renderMarkers])
+
+  useEffect(() => {
+    if (isMapReady) drawRoutePolylines()
+  }, [isMapReady, drawRoutePolylines])
 
   useEffect(() => {
     if (!isMapReady || !containerRef.current) return

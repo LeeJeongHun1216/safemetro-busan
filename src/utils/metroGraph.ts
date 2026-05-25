@@ -107,3 +107,56 @@ export function bfsShortestPath(
 
   return null
 }
+
+/** 역별 가중치를 반영한 접근성 우선 최단 경로 */
+export function dijkstraWeightedPath(
+  graph: MetroGraph,
+  from: string,
+  to: string,
+  nodeWeight: (name: string) => number
+): string[] | null {
+  if (from === to) return [from]
+  if (!graph[from] || !graph[to]) return null
+
+  const dist = new Map<string, number>()
+  const prev = new Map<string, string | null>()
+  const visited = new Set<string>()
+
+  dist.set(from, nodeWeight(from))
+  prev.set(from, null)
+
+  while (visited.size < Object.keys(graph).length) {
+    let u: string | null = null
+    let best = Infinity
+    for (const [name, d] of dist) {
+      if (visited.has(name) || d >= best) continue
+      best = d
+      u = name
+    }
+    if (u === null) break
+    if (u === to) break
+    visited.add(u)
+
+    const node = graph[u]
+    if (!node) continue
+
+    for (const v of node.neighbors) {
+      if (visited.has(v)) continue
+      const alt = best + 1 + nodeWeight(v)
+      if (!dist.has(v) || alt < dist.get(v)!) {
+        dist.set(v, alt)
+        prev.set(v, u)
+      }
+    }
+  }
+
+  if (!prev.has(to)) return null
+
+  const path: string[] = []
+  let cur: string | null = to
+  while (cur) {
+    path.unshift(cur)
+    cur = prev.get(cur) ?? null
+  }
+  return path
+}
