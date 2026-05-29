@@ -27,6 +27,8 @@ const LINE3_COORD_SOURCE_BY_STATION_NO: Partial<Record<number, number>> = {
 const MANUAL_STATION_COORDS: Partial<
   Record<number, { latitude: number; longitude: number }>
 > = {
+  /** 1호선 동매역 — 공공데이터 좌표 보정 */
+  100: { latitude: 35.08976051613637, longitude: 128.97337483432813 },
   317: { latitude: 35.213317928835785, longitude: 128.96082371290117 },
 }
 
